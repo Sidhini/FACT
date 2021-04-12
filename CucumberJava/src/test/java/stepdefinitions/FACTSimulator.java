@@ -104,12 +104,21 @@ public class FACTSimulator {
 	}	
 
 	@And("select KBA answers")
-	public void select_KBA_answers() {
-		WebDriverWait wait = new WebDriverWait(driver, 60);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("question-Q1")));
-
-		driver.findElement(By.xpath("//*[text()[contains(.,'THE HOME DEPOT, INC.')]]")).click();
-		driver.findElement(By.xpath("//*[text()[contains(.,'BANK OF AMERICA CORPORATION')]]")).click();
+	public void select_KBA_answers() throws ReportAlreadyPulledException, ODUException {
+		try {
+			WebDriverWait wait = new WebDriverWait(driver, 60);
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("question-Q1")));
+		} catch (Exception e) {
+			if (driver.findElements(By.xpath("//*[text()[contains(.,'Report Already Received')]]")).size() > 0) {				
+				throw new ReportAlreadyPulledException("Report Already Pulled screen shown. Please scrub the user and try again.");
+			} else if (driver.findElements(By.xpath("//*[text()[contains(.,'Online Delivery Unavailable')]]")).size() > 0) {				
+				throw new ODUException("ODU page is shown");
+			} else {
+				e.printStackTrace();
+			}
+		}
+		driver.findElement(By.xpath("//*[text()[contains(.,'THE HOME DEPOT, INC.')]]")).click();		
+		driver.findElement(By.xpath("//*[text()[contains(.,'BANK OF AMERICA CORPORATION')]]")).click();		
 		driver.findElement(By.xpath("//*[text()[contains(.,'1ST POWER SERVICES, INC')]]")).click();
 		if (driver.findElements(By.xpath("//*[text()[contains(.,'$900 - $949')]]")).size() > 0) {
 			System.out.println("inside $900 - $949 check");
@@ -117,14 +126,18 @@ public class FACTSimulator {
 		} else if (driver.findElements(By.xpath("//*[text()[contains(.,'$875 - $924')]]")).size() > 0) {
 			System.out.println("inside $875 - $924 check");
 			driver.findElement(By.xpath("//*[text()[contains(.,'$875 - $924')]]")).click();
-		}
+		} 
+		/*driver.findElement(By.id("kbaQuestion11")).click();	
+		driver.findElement(By.id("kbaQuestion02")).click();	
+		driver.findElement(By.id("kbaQuestion18")).click();	
+		driver.findElement(By.id("kbaQuestion21")).click();	*/
 		try {
-			Screenshots.takeFullSnapshot(driver,"C://Users//sxb315//Desktop//GCS_Scrum_Team//Automation//Screenshots//KBAAnswers.png");
+			Screenshots.takeFullSnapshot(driver,
+					"C://Users//sxb315//Desktop//GCS_Scrum_Team//Automation//Screenshots//KBAAnswers.png");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		System.out.println("select KBA answers");
-
 	}
 
 	@And("clicks KBA CONTINUE button")
@@ -146,14 +159,17 @@ public class FACTSimulator {
 	}
 
 	@And("clicks DOWNLOAD REPORT button")
-	public void clicks_DOWNLOAD_REPORT_button() {
-		WebDriverWait wait = new WebDriverWait(driver, 120);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("downloadPdfButton")));
+	public void clicks_DOWNLOAD_REPORT_button() throws ODUException {
 		try {
-			Screenshots.takeSnapShot(driver,
-					"C://Users//sxb315//Desktop//GCS_Scrum_Team//Automation//Screenshots//DownloadReport.png");
+		WebDriverWait wait = new WebDriverWait(driver, 120);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("downloadPdfButton")));		
+		Screenshots.takeSnapShot(driver, "C://Users//sxb315//Desktop//GCS_Scrum_Team//Automation//Screenshots//DownloadReport.png");
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (driver.findElements(By.xpath("//*[text()[contains(.,'Online Delivery Unavailable')]]")).size() > 0) {				
+				throw new ODUException("ODU page is shown");
+			} else {
+				e.printStackTrace();
+			}
 		}
 		driver.findElement(By.id("downloadPdfButton")).click();
 		System.out.println("clicks DOWNLOAD REPORT button");
